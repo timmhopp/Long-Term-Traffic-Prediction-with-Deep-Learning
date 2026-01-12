@@ -6,7 +6,7 @@ This project implements a deep learning model for predicting Origin-Destination 
 
 - **Spatial Learning**: Graph Attention Networks with distance-aware attention
 - **Temporal Learning**: Long-term LSTM and short-term multi-GRU branches
-- **Multi-step Prediction**: Predictions to single OD at specifc horizon
+- **Multi-step Prediction**: Predictions to single OD at specific horizon
 - **Flexible Loss Functions**: Negative Binomial and Poisson loss options
 - **Recursive Forecasting**: Long-term recursive predictions (experimental)
 
