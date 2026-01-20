@@ -1,6 +1,6 @@
 #!/bin/bash
-
-# Example evaluation script for FusedODModel
+# Comprehensive evaluation script for FusedODModel
+# Runs single-step, recursive forecasting, and multi-step evaluations
 
 # Set paths (adjust these to your data locations)
 ADJACENCY_PATH="/path/to/adjacency_matrix.csv"
@@ -23,15 +23,17 @@ NUM_CHUNKS_SHORT=4
 FORECAST_STEPS=144
 PLOT_HORIZONS="1 6 18 72 144"
 
-echo "Starting FusedODModel evaluation..."
+# Multi-step prediction horizons
+PREDICTION_HORIZONS="1 36 144 432 1008"
 
-# Standard evaluation
+# Single-Step Evaluation
+echo "[1/3] Running single-step evaluation..."
 python eval_main.py \
     --adjacency-path $ADJACENCY_PATH \
     --distance-path $DISTANCE_PATH \
     --trips-tensor-path $TRIPS_TENSOR_PATH \
     --checkpoint-path $CHECKPOINT_PATH \
-    --output-dir $OUTPUT_DIR \
+    --output-dir "${OUTPUT_DIR}/single_step" \
     --batch-size $BATCH_SIZE \
     --hidden-size $HIDDEN_SIZE \
     --w-long $W_LONG \
@@ -41,17 +43,22 @@ python eval_main.py \
     --eval-train \
     --eval-test
 
-echo "Basic evaluation completed!"
+if [ $? -eq 0 ]; then
+    echo "✓ Single-step evaluation completed successfully!"
+else
+    echo "✗ Single-step evaluation failed!"
+    exit 1
+fi
+echo ""
 
-# Recursive forecasting evaluation
-echo "Starting recursive forecasting..."
-
+# Recursive Forecasting Evaluation
+echo "[2/3] Running recursive forecasting evaluation..."
 python eval_main.py \
     --adjacency-path $ADJACENCY_PATH \
     --distance-path $DISTANCE_PATH \
     --trips-tensor-path $TRIPS_TENSOR_PATH \
     --checkpoint-path $CHECKPOINT_PATH \
-    --output-dir "${OUTPUT_DIR}_forecast" \
+    --output-dir "${OUTPUT_DIR}/recursive_forecast" \
     --batch-size $BATCH_SIZE \
     --hidden-size $HIDDEN_SIZE \
     --w-long $W_LONG \
@@ -62,16 +69,44 @@ python eval_main.py \
     --forecast-steps $FORECAST_STEPS \
     --plot-horizons $PLOT_HORIZONS
 
-echo "Recursive forecasting completed!"
+if [ $? -eq 0 ]; then
+    echo "✓ Recursive forecasting completed successfully!"
+else
+    echo "✗ Recursive forecasting failed!"
+    exit 1
+fi
+echo ""
 
-# For multi-step model evaluation, add --multi-step flag:
-# python eval_main.py \
-#     --adjacency-path $ADJACENCY_PATH \
-#     --distance-path $DISTANCE_PATH \
-#     --trips-tensor-path $TRIPS_TENSOR_PATH \
-#     --checkpoint-path $CHECKPOINT_PATH \
-#     --multi-step \
-#     --prediction-horizons 1 36 144 432 1008 \
-#     --output-dir "${OUTPUT_DIR}_multi_step" \
-#     --eval-test \
-#     --recursive-forecast
+# 3. Multi-Step Evaluation
+echo "[3/3] Running multi-step evaluation..."
+echo "--------------------------------------"
+python eval_main.py \
+    --adjacency-path $ADJACENCY_PATH \
+    --distance-path $DISTANCE_PATH \
+    --trips-tensor-path $TRIPS_TENSOR_PATH \
+    --checkpoint-path $CHECKPOINT_PATH \
+    --output-dir "${OUTPUT_DIR}/multi_step" \
+    --batch-size $BATCH_SIZE \
+    --hidden-size $HIDDEN_SIZE \
+    --w-long $W_LONG \
+    --w-short $W_SHORT \
+    --chunk-size-short $CHUNK_SIZE_SHORT \
+    --num-chunks-short $NUM_CHUNKS_SHORT \
+    --multi-step \
+    --prediction-horizons $PREDICTION_HORIZONS \
+    --eval-test \
+    --recursive-forecast
+
+if [ $? -eq 0 ]; then
+    echo "✓ Multi-step evaluation completed successfully!"
+else
+    echo "✗ Multi-step evaluation failed!"
+    exit 1
+fi
+echo ""
+
+# Summary
+echo "Results saved to:"
+echo "  - Single-step:      ${OUTPUT_DIR}/single_step/"
+echo "  - Recursive:        ${OUTPUT_DIR}/recursive_forecast/"
+echo "  - Multi-step:       ${OUTPUT_DIR}/multi_step/"
